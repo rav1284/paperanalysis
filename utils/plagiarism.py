@@ -1,6 +1,7 @@
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+import re
 
 def get_sentence_vector(text, model):
     words = text.lower().split()
@@ -15,23 +16,33 @@ def get_sentence_vector(text, model):
 
     return np.mean(word_vectors, axis=0)
 
+def check_plagiarism(input_text, document_text, Model=None):
+    sentences = re.split(r'(?<=[.!?])\s+', document_text)
+    sentences = [s.strip() for s in sentences if len(s.split()) > 3]
 
-def check_plagiarism(text1, text2, model=None):
-    # TF-IDF similarity
-    vectorizer = TfidfVectorizer()
-    tfidf = vectorizer.fit_transform([text1, text2])
-    tfidf_score = cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0]
+    best_score = 0
+    best_sentence = ""
 
-    # Word2Vec similarity
-    if model:
-        vec1 = get_sentence_vector(text1, model)
-        vec2 = get_sentence_vector(text2, model)
+    for sent in sentences:
+        try:
+            vectorizer = TfidfVectorizer(stop_words='english')
+            tfidf = vectorizer.fit_transform([input_text, sent])
+            tfidf_score = cosine_similarity(tfidf)[0][1]
 
-        w2v_score = cosine_similarity([vec1], [vec2])[0][0]
-    else:
-        w2v_score = 0
+            if Model:
+                vec1 = get_sentence_vector(input_text, Model)
+                vec2 = get_sentence_vector(sent, Model)
+                w2v_score = cosine_similarity([vec1], [vec2])[0][0]
+            else:
+                w2v_score = 0
 
-    # Final hybrid score (average)
-    final_score = (tfidf_score + w2v_score) / 2
+            final_score = (tfidf_score + w2v_score) / 2
 
-    return final_score
+            if final_score > best_score:
+                best_score = final_score
+                best_sentence = sent
+
+        except:
+            continue
+
+    return best_score, best_sentence
