@@ -3,6 +3,7 @@ import re
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 
+nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 
 def preprocess(text):
