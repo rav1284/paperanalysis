@@ -57,11 +57,10 @@ if uploaded_file:
         st.success(result)
 
     st.subheader("🔍 Plagiarism Check")
-    text1 = st.text_area("Text 1")
-    text2 = st.text_area("Text 2")
+    input_text = st.text_area("Enter text to check")
 
     if st.button("Check Similarity"):
-        score = check_plagiarism(text1, text2, model)        
+        score, matched_sentence = check_plagiarism(input_text, text, model)        
 
         percentage = score * 100
 
@@ -71,6 +70,10 @@ if uploaded_file:
             st.warning(f"Similarity Score: {percentage:.2f}% (Moderate ⚠️)")
         else:
             st.success(f"Similarity Score: {percentage:.2f}% (Low ✅)")
+        
+        if matched_sentence:
+            st.subheader("📌 Most Similar Sentence in PDF")
+            st.info(matched_sentence)
 
     if st.button("📊 Generate PPT"):
         if "summary" in st.session_state:
